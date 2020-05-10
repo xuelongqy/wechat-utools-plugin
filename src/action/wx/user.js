@@ -20,6 +20,8 @@ let selectedUser = null
  */
 const handleSearchUser = function (action, callbackSetList, searchWord) {
     selectedUser = null
+    // 注册快捷键
+    registeredHotKey()
     if (!searching) {
         searching = true
         searchUser(searchWord || (action.type === 'over' ? action.payload : '')).then((response) => {
@@ -59,9 +61,7 @@ const handleSearchUser = function (action, callbackSetList, searchWord) {
  * @param itemData 用户信息
  */
 const handleUserChatLog = function (action, callbackSetList, itemData) {
-    // 注册快捷键
     selectedUser = itemData
-    registeredHotKey()
     let defaultList = [
         {
             type: 'chatlog',
@@ -95,10 +95,11 @@ const handleUserChatLog = function (action, callbackSetList, itemData) {
         } else {
             chatLogList[0].chatLogType = 'openSession'
             callbackSetList(chatLogList)
+            inputContent = ''
             window.utools.removeSubInput()
             window.utools.setSubInput(({text}) => {
                 inputContent = text
-            }, '聊天内容，不输入则直接打开会话')
+            }, '聊天内容 Command:(Y)打开会话；(I)高清头像；(C)复制微信号；(E)退出')
         }
     }).catch(() => {
         callbackSetList(defaultList)
@@ -129,9 +130,7 @@ const handleOpenSession = function (action, callbackSetList, itemData) {
  */
 const handleChatLog = function (action, callbackSetList, itemData) {
     if (itemData.chatLogType === 'openSession') {
-        window.utools.hideMainWindow()
         handleSendMsg(action, callbackSetList, itemData)
-        window.utools.outPlugin()
     } else {
         if (itemData.title.includes('[图片]') ||
             itemData.title.includes('[视频]')) {
@@ -160,10 +159,14 @@ const handleChatLog = function (action, callbackSetList, itemData) {
 const handleSendMsg = function (action, callbackSetList, itemData) {
     if (inputContent && inputContent.length >= 0) {
         sendMsg(itemData.userId, inputContent, itemData.srvId).then(() => {
+            // 更新聊天记录
+            handleUserChatLog(action, callbackSetList, selectedUser)
         }).catch(() => {
         })
     } else {
+        window.utools.hideMainWindow()
         handleOpenSession(action, callbackSetList, itemData)
+        window.utools.outPlugin()
     }
 }
 
@@ -173,19 +176,25 @@ const handleSendMsg = function (action, callbackSetList, itemData) {
  * @param itemData 需响应数据
  * @param callbackSetList 列表回调
  */
-const registeredHotKey = function() {
+const registeredHotKey = function () {
     if (isRegisteredHotKey) return
     isRegisteredHotKey = true
     let listener = (event) => {
         if (event.code === 'KeyY') { // Command + Y，打开会话
+            if (!selectedUser) return
             window.utools.hideMainWindow()
             handleOpenSession(null, null, selectedUser)
             window.utools.outPlugin()
         } else if (event.code === 'KeyC') { // Command + C，复制微信号
+            if (!selectedUser) return
             window.utools.copyText(selectedUser.userId)
             window.utools.showNotification(`已将好友 ${selectedUser.title} 的微信号复制到剪贴板`)
         } else if (event.code === 'KeyI') { // Command + I，查看头像
+            if (!selectedUser) return
             window.utools.shellOpenExternal(selectedUser.url)
+        } else if (event.code === 'KeyE') { // Command + E，退出
+            window.utools.hideMainWindow()
+            window.utools.outPlugin()
         }
     }
     window.addEventListener('keydown', listener, true)
