@@ -23,6 +23,12 @@
 
 ---
 
+### 截图
+
+![screenshot](./art/screenshot/wechat-utools-plugin.png)
+
+---
+
 ### 使用
 * 安装此插件 [wechat-utools-plugin](https://github.com/xuelongqy/wechat-utools-plugin/releases) & [WeChatExtension-ForMac](https://github.com/MustangYM/WeChatExtension-ForMac)
 
