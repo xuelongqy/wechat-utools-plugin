@@ -1,7 +1,7 @@
 # wechat-utools-plugin(微信助手)
 
 ![platform](https://img.shields.io/badge/platform-macos-lightgrey.svg)
-[![GitHub license](https://img.shields.io/github/license/xuelongqy/wechat-utools-plugin.svg)](https://github.com/xuelongqy/wechat-utools-plugin/blob/master/LICENSE)
+[![GitHub license](https://img.shields.io/github/license/xuelongqy/wechat-utools-plugin)](https://github.com/xuelongqy/wechat-utools-plugin/blob/master/LICENSE)
  
 一款让你在macOS不用打开微信就能聊天的utools插件
 
