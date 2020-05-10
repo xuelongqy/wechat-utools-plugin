@@ -1,0 +1,27 @@
+{
+  "pluginName": "微信助手",
+  "description": "基于WeChatExtension-ForMac的uTools插件",
+  "author": "KnoYo",
+  "version": "0.0.1",
+  "logo": "logo.png",
+  "platform": [
+    "darwin"
+  ],
+  "preload": "preload.js",
+  "features": [
+    {
+      "code": "wx",
+      "label": "微信",
+      "explain": "微信搜索",
+      "cmds": [
+        "wx",
+        "WeChat",
+        "微信",
+        {
+          "type": "over",
+          "label": "微信搜索"
+        }
+      ]
+    }
+  ]
+}
