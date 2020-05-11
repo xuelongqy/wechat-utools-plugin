@@ -172,9 +172,6 @@ const handleSendMsg = function (action, callbackSetList, itemData) {
 
 /**
  * 注册快捷键
- * @param action 动作
- * @param itemData 需响应数据
- * @param callbackSetList 列表回调
  */
 const registeredHotKey = function () {
     if (isRegisteredHotKey) return
