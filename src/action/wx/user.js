@@ -43,7 +43,7 @@ const handleSearchUser = function (action, callbackSetList, searchWord) {
                     url: item.url
                 }
             }))
-            replaceTifToBase64().then(() => {})
+            document.body.onload = replaceTifToBase64()
             searching = false
         }).catch((e) => {
             console.log(e)
@@ -99,7 +99,7 @@ const handleUserChatLog = function (action, callbackSetList, itemData) {
         })
         chatLogList[0].chatLogType = 'openSession'
         callbackSetList(chatLogList)
-        replaceTifToBase64().then(() => {})
+        document.body.onload = replaceTifToBase64()
         inputContent = ''
         window.utools.removeSubInput()
         window.utools.setSubInput(({text}) => {

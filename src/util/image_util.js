@@ -4,7 +4,7 @@ const UTIF = require('../../lib/UTIF')
  * 替换tif图片(本地)为Base64
  * @returns
  */
-const replaceTifToBase64 = async function() {
+const replaceTifToBase64 = function() {
     let imgList = document.getElementsByTagName("img")
     for (let i=0; i < imgList.length; i++)
     {
