@@ -3,7 +3,7 @@
   "description": "基于WeChatExtension-ForMac的uTools插件",
   "author": "KnoYo",
   "homepage": "https://github.com/xuelongqy/wechat-utools-plugin",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "logo": "logo.png",
   "platform": [
     "darwin"

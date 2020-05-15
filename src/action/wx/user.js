@@ -1,4 +1,8 @@
+const { replaceTifToBase64 } = require("../../util/image_util")
 const {searchUser, userChatLog, openSession, sendMsg} = require('../../http/user')
+const fs = require("fs")
+const path = require("path")
+const { exec } = require('child_process')
 
 // 搜索状态(防止频繁请求导致微信崩溃)
 let searching = false
@@ -24,25 +28,25 @@ const handleSearchUser = function (action, callbackSetList, searchWord) {
     registeredHotKey()
     if (!searching) {
         searching = true
-        searchUser(searchWord || (action.type === 'over' ? action.payload : '')).then((response) => {
+        searchUser(searchWord || (action.type === 'over' ? action.payload : '')).then(async (response) => {
             let users = response.data
-            let userList = users.map((item) => {
+            if (users.length === 0) {
+                throw users
+            }
+            callbackSetList(users.map((item) => {
                 return {
                     type: 'user',
                     userId: item.userId,
                     title: item.title,
                     description: item.subTitle,
-                    icon: item.url || item.icon || 'empty',
+                    icon: item.icon || item.url || 'empty',
                     url: item.url
                 }
-            })
-            if (userList.length === 0) {
-                throw userList
-            } else {
-                callbackSetList(userList)
-            }
+            }))
+            replaceTifToBase64().then(() => {})
             searching = false
-        }).catch(() => {
+        }).catch((e) => {
+            console.log(e)
             callbackSetList([
                 {
                     title: '找不到联系人',
@@ -75,8 +79,11 @@ const handleUserChatLog = function (action, callbackSetList, itemData) {
         }
     ]
     callbackSetList(defaultList)
-    userChatLog(itemData.userId).then((response) => {
+    userChatLog(itemData.userId).then(async (response) => {
         let chatLogs = response.data
+        if (chatLogs.length === 0) {
+            throw chatLogs
+        }
         let chatLogList = chatLogs.map((item) => {
             return {
                 type: 'chatlog',
@@ -85,23 +92,21 @@ const handleUserChatLog = function (action, callbackSetList, itemData) {
                 copyText: item.copyText,
                 chatLogType: 'chatlog',
                 description: item.subTitle,
-                icon: itemData.url || itemData.icon || 'empty',
+                icon: item.icon || itemData.url || 'empty',
                 url: item.url,
                 srvId: item.srvId
             }
         })
-        if (chatLogList.length === 0) {
-            throw chatLogList
-        } else {
-            chatLogList[0].chatLogType = 'openSession'
-            callbackSetList(chatLogList)
-            inputContent = ''
-            window.utools.removeSubInput()
-            window.utools.setSubInput(({text}) => {
-                inputContent = text
-            }, '聊天内容 Command:(Y)打开会话；(I)高清头像；(C)复制微信号；(E)退出')
-        }
-    }).catch(() => {
+        chatLogList[0].chatLogType = 'openSession'
+        callbackSetList(chatLogList)
+        replaceTifToBase64().then(() => {})
+        inputContent = ''
+        window.utools.removeSubInput()
+        window.utools.setSubInput(({text}) => {
+            inputContent = text
+        }, '聊天内容 Command: (Y)打开会话;(I)高清头像;(C)复制微信号;(E)退出')
+    }).catch((e) => {
+        console.log(e)
         callbackSetList(defaultList)
         searching = false
     })
@@ -118,7 +123,7 @@ const handleOpenSession = function (action, callbackSetList, itemData) {
         openSession(itemData.userId).then(() => {
         }).catch(() => {
         })
-        window.utools.shellOpenItem('/Applications/WeChat.app')
+        exec('open /Applications/WeChat.app')
     }
 }
 
@@ -135,17 +140,31 @@ const handleChatLog = function (action, callbackSetList, itemData) {
         if (itemData.title.includes('[图片]') ||
             itemData.title.includes('[视频]')) {
             window.utools.shellOpenItem(itemData.copyText)
+        } else if (itemData.title.includes('[表情]')) {
+            let emojiPath = path.resolve(itemData.copyText, '..')
+            let emojiDir = fs.readdirSync(emojiPath)
+            let emojiName = itemData.copyText.replace(emojiPath + '/', '')
+            emojiDir.forEach((item) => {
+                if (item.indexOf(emojiName) >= 0) {
+                    window.utools.shellOpenItem(emojiPath + '/' + item)
+                }
+            })
         } else if (itemData.title.includes('[语音]')) {
             sendMsg(itemData.userId, '', itemData.srvId).then(() => {
             }).catch(() => {
             })
         } else {
-            window.utools.showMessageBox({
+            let clickIndex = window.utools.showMessageBox({
                 type: 'info',
                 title: '聊天记录',
                 message: itemData.copyText,
-                buttons: ['确定'],
+                buttons: ['确定', '复制'],
+                defaultId: 0,
             })
+            if (clickIndex === 1) {
+                window.utools.copyText(itemData.copyText)
+                window.utools.showNotification(`已将聊天内容复制到剪贴板`)
+            }
         }
     }
 }
